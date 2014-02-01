@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+    http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd"
+    >
+
+	<!--
+	<bean id="messageSource"
+		class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basename">
+			<value>messages</value>
+		</property>
+	</bean>
+
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver" />
+	
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	
+	<bean id="messageSource"
+		class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basename">
+			<value>messages</value>
+		</property>
+	</bean>
+-->
+
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<context:component-scan base-package="com.kylemiller.watchdogd.web" />
+	
+	<mvc:annotation-driven />
+	
+	<mvc:interceptors>
+		<bean class="com.kylemiller.watchdogd.web.interceptor.security.SiteUrlSecurityInterceptor">
+			<property name="siteDAO" ref="siteDAO" />
+		</bean>
+		<bean class="com.kylemiller.watchdogd.web.interceptor.security.ContactUrlSecurityInterceptor">
+			<property name="contactDAO" ref="contactDAO" />
+		</bean>
+		<bean class="com.kylemiller.watchdogd.web.interceptor.CurrentUsersInterceptor">
+			<property name="currentUsers" ref="currentUsers" />
+		</bean>
+		<bean class="com.kylemiller.watchdogd.web.interceptor.AccountInterceptor" />
+	</mvc:interceptors>
+	
+	<mvc:view-controller path="/" view-name="index"/>
+	<mvc:view-controller path="/login" view-name="login"/>
+	
+	<mvc:view-controller path="/privacy" view-name="policies/privacy"/>
+	<mvc:view-controller path="/terms" view-name="policies/terms"/>
+	<mvc:view-controller path="/about" view-name="about"/>
+	<mvc:view-controller path="/help" view-name="help"/>
+	
+	<!--<mvc:view-controller path="/sites" view-name="redirect:/home"/>-->
+	
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+    	<property name="basenames">
+      		<list>
+        		<value>messages</value>
+      		</list>
+    	</property>
+  	</bean>
+  	
+  	<bean id="currentUsers" class="java.util.concurrent.ConcurrentHashMap" scope="singleton"/>
+  	
+  	<task:annotation-driven executor="myExecutor" scheduler="myScheduler"/>
+
+	<task:executor id="myExecutor" pool-size="5"/>
+
+	<task:scheduler id="myScheduler" pool-size="5"/>
+  	
+<!--
+	<bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+	    <property name="mappings">
+	        <value>
+	            /**=catchAllController
+	        </value>
+	    </property>
+	</bean>
+	
+	
+	<bean id="catchAllController" class="com.kylemiller.watchdogd.web.controller.CatchAllController" />
+-->
+
+</beans>

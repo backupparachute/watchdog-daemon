@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>/WEB-INF/watchdogd-probe.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="probeServiceTask" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="probeServiceJobDetail" />
+		<property name="startDelay" value="25000" />
+		<property name="repeatInterval" value="30000" />
+	</bean>
+	
+	<bean id="probeServiceJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+  		<property name="targetObject" ref="probeService" />
+  		<property name="targetMethod" value="run" />
+	</bean>
+	
+	<bean id="timerFactory" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="siteQueueServiceTask"/>
+				<ref bean="probeServiceTask"/>
+				<ref bean="downSiteMonitorTask"/>
+				<ref bean="notificationSenderTask"/>
+				<ref bean="siteReportMaintenainceRunnerTask"/>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="notificationSenderTask" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="notificationSenderJobDetail" />
+		<property name="startDelay" value="45000" />
+		<property name="repeatInterval" value="30000" />
+	</bean>
+	
+	<bean id="notificationSenderJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+  		<property name="targetObject" ref="notificationSender" />
+  		<property name="targetMethod" value="run" />
+	</bean>
+	
+	<bean id="notificationSender" class="com.kylemiller.watchdogd.probe.async.site.NotificationSender">
+		<property name="siteNotificationDAO" ref="siteNotificationDAO" />
+		<property name="notifiers">
+			<map>
+				<entry key="twitter">
+					<bean class="com.kylemiller.watchdogd.service.notification.notifiers.TwitterNotifier" />
+				</entry>
+				<entry key="email">
+					<bean class="com.kylemiller.watchdogd.service.notification.notifiers.EmailNotifier">
+						<property name="emailService" ref="emailService" />
+					</bean>
+				</entry>
+			</map>
+		</property>
+	</bean>
+	
+	<bean id="siteQueueServiceTask" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="siteQueueServiceJobDetail" />
+		<property name="startDelay" value="10000" />
+		<property name="repeatInterval" value="30000" />
+	</bean>
+	
+	<bean id="siteQueueServiceJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+  		<property name="targetObject" ref="siteQueueService" />
+  		<property name="targetMethod" value="run" />
+	</bean>
+	<bean id="siteQueueService" class="com.kylemiller.watchdogd.probe.async.site.SiteQueueServiceImpl">
+		<!--<property name="siteQueue" ref="siteQueue" />-->
+		<property name="siteQueueDAO" ref="siteQueueDAO" />
+		<property name="siteDAO" ref="siteDAO" />
+		<!--<property name="subscriptionDAO" ref="subscriptionDAO" />-->
+	</bean>
+	
+	<bean id="downSiteMonitor" class="com.kylemiller.watchdogd.probe.async.site.DownSiteMonitor">
+		<property name="siteDAO" ref="siteDAO" />
+		<property name="siteStatusService" ref="siteStatusService" />
+		<property name="siteReportDAO" ref="siteReportDAO" />
+		<property name="notificationService" ref="notificationService" />
+		<!--<property name="subscriptionDAO" ref="subscriptionDAO" />-->
+	</bean>
+	
+	<bean id="downSiteMonitorTask" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="downSiteMonitorJobDetail" />
+		<property name="startDelay" value="60000" />
+		<property name="repeatInterval" value="60000" />
+	</bean>
+	
+	<bean id="downSiteMonitorJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+  		<property name="targetObject" ref="downSiteMonitor" />
+  		<property name="targetMethod" value="run" />
+	</bean>
+	
+	<bean id="siteReportMaintenainceRunner" class="com.kylemiller.watchdogd.probe.async.site.SiteReportMaintenainceRunner">
+		<property name="siteReportDAO" ref="siteReportDAO" />
+		<property name="dateHelper" ref="dateHelper" />
+	</bean>
+	
+	<bean id="siteReportMaintenainceRunnerTask" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="siteReportMaintenainceRunnerJobDetail" />
+		<property name="cronExpression" value="0 0 3 * * ?" />
+	</bean>
+	
+	<bean id="siteReportMaintenainceRunnerJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+  		<property name="targetObject" ref="siteReportMaintenainceRunner" />
+  		<property name="targetMethod" value="run" />
+	</bean>
+	
+	<bean id="probeService" class="com.kylemiller.watchdogd.probe.service.ProbeServiceImpl">
+		<property name="probeFactory" ref="probeFactory" />
+		<property name="probeExecutor" ref="probeExecutor" />
+		<!--<property name="siteQueue" ref="siteQueue" />-->
+		<property name="siteQueueDAO" ref="siteQueueDAO" />
+		<property name="probeCallback" ref="probeCallback" />
+	</bean>
+	
+	<bean id="probeCallback" class="com.kylemiller.watchdogd.probe.service.BaseProbeCallback">
+		<property name="siteQueueDAO" ref="siteQueueDAO" />
+	</bean>
+	
+	<bean id="probeFactory" class="com.kylemiller.watchdogd.probe.service.ProbeFactoryImpl">
+		<property name="probeBeanFactory" ref="probeBeanFactory" />
+	</bean>
+	
+	<bean id="probeBeanFactory" class="org.springframework.beans.factory.config.ServiceLocatorFactoryBean">
+		<property name="serviceLocatorInterface" value="com.kylemiller.watchdogd.probe.service.ProbeBeanFactory"/>
+		<property name="serviceMappings">
+			<props>
+				<prop key="http">httpProbe</prop>
+				<prop key="tcp">tcpProbe</prop>
+				<prop key="ssh">sshProbe</prop>
+				<prop key="dns">dnsProbe</prop>
+				<prop key="ftp">ftpProbe</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="baseProbe" class="com.kylemiller.watchdogd.probe.BaseProbe" abstract="true">
+		<property name="siteReportDAO" ref="siteReportDAO" />
+		<property name="notificationService" ref="notificationService" />
+		<property name="siteStatusService" ref="siteStatusService" />
+	</bean>
+	
+	<bean id="httpProbe" class="com.kylemiller.watchdogd.probe.HttpProbe" parent="baseProbe" scope="prototype">
+		<property name="httpClient" ref="httpClient" />
+	</bean>
+	
+	<bean id="tcpProbe" class="com.kylemiller.watchdogd.probe.TcpProbe" parent="baseProbe" scope="prototype" />
+	
+	<bean id="sshProbe" class="com.kylemiller.watchdogd.probe.SshProbe" parent="baseProbe" scope="prototype" />
+	
+	<bean id="dnsProbe" class="com.kylemiller.watchdogd.probe.DnsProbe" parent="baseProbe" scope="prototype" />
+	
+	<bean id="ftpProbe" class="com.kylemiller.watchdogd.probe.FtpProbe" parent="baseProbe" scope="prototype" />
+	
+	<!--<bean id="siteQueue" class="java.util.concurrent.LinkedBlockingQueue" />-->
+	
+	<bean id="probeExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+    	<property name="corePoolSize" value="0" />
+      	<property name="maxPoolSize" value="100" />
+      	<property name="keepAliveSeconds" value="60" />
+      	<property name="queueCapacity" value="0" />
+    </bean>
+
+
+</beans>

@@ -1,0 +1,56 @@
+<project name="watchdogd-build" default="dist" basedir=".">
+	
+	<!-- local build properties (will override defaults) -->
+	<property file="build.properties"/>
+	
+	<property name="common.dir" location="../watchdogd-common" />
+	<property name="probe.dir" location="../watchdogd-probe" />
+	<property name="web.dir" location="../watchdogd-web" />
+	
+	<property name="dist.dir" location="dist" />
+	<property name="build.version" location="beta" />
+
+	<!-- initialization and cleanup targets -->
+	<target name="init" depends="clean" description="initialize">
+		<mkdir dir="${dist.dir}"/>
+	</target>
+	
+	<target name="clean" description="clean up">
+		<delete dir="${dist.dir}"/>
+	</target>
+
+	<target name="dist" depends="init">
+		
+		<input
+		    message="Select Environment"
+		    validargs="dev,ec2"
+		    addproperty="build.env"
+		    defaultvalue="dev"
+  		/> 
+		
+		<echo>###############################################################################</echo>
+		<ant dir="${common.dir}" inheritAll="false">
+			<property name="build.env" value="${build.env}" />
+			<property name="build.version" value="${build.version}" />
+		</ant>
+		<echo>###############################################################################</echo>
+		<ant dir="${probe.dir}" inheritAll="false">
+			<property name="build.env" value="${build.env}" />
+		</ant>
+		<copy todir="${dist.dir}">
+			<fileset dir="${probe.dir}/dist">
+				<include name="**/*.war"/>
+			</fileset>
+		</copy>
+		<echo>###############################################################################</echo>
+		<ant dir="${web.dir}" inheritAll="false" >
+			<property name="build.env" value="${build.env}" />
+		</ant>
+		<copy todir="${dist.dir}">
+			<fileset dir="${web.dir}/dist">
+				<include name="**/*.war"/>
+			</fileset>
+		</copy>
+	</target>
+	
+</project>

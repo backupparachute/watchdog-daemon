@@ -1,0 +1,217 @@
+<project name="watchdogd-probe" default="war" basedir=".">
+	
+	<!-- local build properties (will override defaults) -->
+	<property file="build.properties"/>
+	
+	<!-- source directories -->
+	<property name="src.dir"                 location="src/java"/>
+	<property name="conf.dir"                location="src/conf"/>
+	<property name="conf.tomcat.dir"         location="src/conf/tomcat"/>
+	<property name="conf.spring.dir"         location="src/conf/spring"/>
+	<property name="test.dir"                location="src/test"/>
+	<property name="commons.dir"        	 location="../watchdogd-common"/>
+	<property name="lib.dir"           	     location="${commons.dir}/lib"/>
+	<property name="ext.lib.dir"           	 location="ext"/>
+	
+	<property name="dist.dir"			     location="dist" />
+	<property name="jar.name"           	 location="${dist.dir}/${ant.project.name}.jar"/>
+	
+	<property name="web.dir"           	     location="src/web"/>
+	<property name="web.xml"           	     location="src/web/WEB-INF/web.xml"/>
+	<property name="war.name"           	 location="${dist.dir}/${ant.project.name}.war"/>
+	
+	<!-- build artifacts directories -->
+	<property name="build.dir"               location="build"/>	
+	<property name="build.class.dir"         location="${build.dir}/classes"/>
+	<property name="build.test.dir"          location="${build.dir}/tests"/>
+	
+	<property name="tomcat.dir"              value="${tomcat.dir}"/>
+	<property name="tomcat.manager.url"      value="http://${tomcat.server.name}:${tomcat.server.port}/manager"/>
+
+	<!--
+	<fileset id="build.classpath" dir="${lib.dir}" />
+	-->
+	<path id="build.classpath">
+    	<fileset dir="${lib.dir}">
+    		<include name="**/*.jar" />
+    	</fileset>
+	</path>
+	<!--
+	<path id="hibernatetool.classpath">
+		<fileset refid="build.classpath" />
+		
+		<pathelement location="${tps.jar.dir}/hibernate/v3_2/hibernate-tools.jar" />
+		<pathelement location="${tps.jar.dir}/hibernate/v3_2/freemarker.jar" />
+		<pathelement location="${tps.jar.dir}/jtidy/tidy.jar"/>
+	</path>
+	
+	<taskdef name="hibernatetool"  classname="org.hibernate.tool.ant.HibernateToolTask">
+		<classpath refid="hibernatetool.classpath" />
+	</taskdef>-->
+	
+	
+	<taskdef file="${conf.tomcat.dir}/tomcat-tasks.properties">
+		<classpath>
+			<path refid="build.classpath" />
+			<pathelement path="${tomcat.dir}/lib/catalina-ant.jar"/>
+		</classpath>
+	</taskdef>
+
+	<target name="tomcat-deploy" depends="war" description="deploy application to tomcat">
+		<!-- Deploy web service -->
+		<tomcat-manager-deploy url="${tomcat.manager.url}"
+			username="${tomcat.username}"
+			password="${tomcat.password}"
+			path="/${ant.project.name}"
+			war="file:${war.name}"
+			update="true"/>
+	</target>
+	
+	<target name="tomcat-undeploy" description="undeploy application from tomcat">
+		<!-- Undeploy web service -->
+		<tomcat-manager-undeploy url="${tomcat.manager.url}"
+			username="${tomcat.username}"
+			password="${tomcat.password}"
+			path="/${ant.project.name}"/>
+	</target>
+	
+	<target name="deploy" depends="init, war, tomcat-undeploy, tomcat-deploy"></target>
+
+	<!-- initialization and cleanup targets -->
+	<target name="init" depends="clean" description="initialize">
+		<mkdir dir="${dist.dir}"/>
+		<mkdir dir="${build.class.dir}"/>
+		<mkdir dir="${build.test.dir}"/>
+		<!--
+		<mkdir dir="${build.junit.report.dir}"/>
+		<mkdir dir="${build.hibernate.dir}"/>
+		<mkdir dir="${build.reports.dir}"/>
+		-->
+
+	</target>
+	
+
+	
+	<target name="clean" description="clean up">
+		<delete dir="${build.dir}"/>
+	</target>
+
+	<target name="compile" depends="init">
+		<!-- compile source -->
+		<javac srcdir="${src.dir}" destdir="${build.class.dir}" debug="true" >
+			<classpath refid="build.classpath" />
+			<!--
+			<compilerarg value="-Xlint" />
+			-->
+		</javac>
+		<copy todir="${build.class.dir}">
+			<fileset dir="${src.dir}">
+				<include name="**/*.*"/>
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="compile-tests" depends="compile">
+			<!-- compile source -->
+			<javac srcdir="${test.dir}" destdir="${build.test.dir}" debug="true" >
+				<classpath refid="build.classpath" />
+			</javac>
+			<copy todir="${build.test.dir}">
+				<fileset dir="${test.dir}">
+					<include name="**/*.*"/>
+					<exclude name="**/*.java" />
+				</fileset>
+			</copy>
+		</target>
+	
+	<target name="unit-test" depends="compile-tests">
+		<junit haltonfailure="yes" haltonerror="yes" errorProperty="test.failed" failureProperty="test.failed" printsummary="true">
+        		<classpath>
+            		<path refid="build.classpath" />
+        		</classpath>
+			
+			<formatter type="xml"/>
+        			
+			<batchtest fork="yes" todir="${build.junit.report.dir}">
+			    <fileset dir="${build.test.dir}">
+			      <include name="**/*Test.class"/>
+			      <exclude name="**/AllTests.java"/>
+			    </fileset>
+			  </batchtest>
+		</junit>
+	</target>
+	
+	<target name="jar" depends="compile">
+		<jar destfile="${jar.name}">
+			<fileset dir="${build.class.dir}" />
+			<!--
+			<fileset dir="${res.dir}" excludes="**log4j**"/>
+			-->
+		</jar>
+	</target>
+	
+	<!--
+	<target name="remoting-jar" depends="compile">
+		<jar destfile="${dist.remoting.jar.name}">
+			<fileset dir="${build.class.dir}">
+				<include name="**/EmpiService.*" />
+				<include name="**/beans/*" />
+				<include name="**/exceptions/*" />
+			</fileset>
+		</jar>
+	</target>
+	-->
+	
+	<!--<target name="compile-reports" depends="init">
+		<jrc 
+				srcdir="${reports.dir}"
+				destdir="${reports.dir}"
+				tempdir="${build.reports.dir}"
+				keepjava="true"
+				xmlvalidation="true">
+			<classpath refid="build.classpath"/>
+			<include name="**/*.jrxml"/>
+		</jrc>
+	</target>
+	
+	<target name="reveng" depends="init">
+		<hibernatetool destdir="${build.hibernate.dir}">
+		 <jdbcconfiguration propertyfile="hibernate.properties" revengfile="hibernate.reveng.xml" packagename="com.mercy.app.mhp.letter.beans"/>
+			<!-#-
+		 <hbm2ddl export="false" outputfilename="create.sql" />
+		 -#->
+		 <hbm2hbmxml /> 
+		 <hbm2java />
+		</hibernatetool>
+	</target>-->
+	
+	<target name="war" depends="jar">
+		
+		<!--
+		<copy todir="${build.lib.dir}" overwrite="true" flatten="true">
+			<fileset refid="build.classpath" />
+		</copy>
+		-->
+		
+		<war destfile="${war.name}" webxml="${web.xml}">
+			
+			<webinf dir="${conf.spring.dir}"></webinf>
+			
+			<zipfileset dir="${web.dir}" />
+			
+			<lib dir="${lib.dir}" />
+			
+			<classes dir="${build.class.dir}" />
+			<classes file="${conf.dir}/log4j.xml" />
+			<classes file="${conf.dir}/*.properties" />
+			<!--
+			<classes file="${res.dir}/log4j.xml" />
+			<classes file="${res.dir}/ApplicationResources.properties" />
+			-->
+			
+		</war>
+		
+	</target>
+	
+</project>

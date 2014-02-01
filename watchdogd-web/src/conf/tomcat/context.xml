@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/">
+	<Logger className="org.apache.catalina.logger.FileLogger" prefix="watchdogd-web." suffix=".log" timestamp="true"/>
+	<!--  <Loader loaderClass="org.springframework.instrument.classloading.tomcat.TomcatInstrumentableClassLoader"/> -->
+</Context>

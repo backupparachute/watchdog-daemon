@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:task="http://www.springframework.org/schema/task"
+    xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+    
+	<bean id="footerJig" class="com.backupparachute.jig.StandardJig">
+		<property name="template">
+<value>
+
+------------------------------
+
+http://watchdogdaemon.com
+support@watchdogdaemon.com
+twitter: @watchdogdaemon
+
+</value></property>
+	</bean>
+	
+<!-- ########################################################################### -->	
+	
+	<bean id="chargeSucceededEmailJig" class="com.backupparachute.jig.ChainJig">
+		<property name="jigs">
+			<list>
+				<ref bean="chargeSucceededBodyJig"/>
+				<ref bean="footerJig" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="chargeSucceededBodyJig" class="com.backupparachute.jig.StandardJig">
+		<property name="template">
+<value>Thank you for purchasing a WatchdogDaemon subscription, we appreciate your business.
+
+Date:     {{date}}
+Card:     {{card-type}} {{card-number}}
+Total:    $ {{total}}
+
+Your WatchdogDaemon subscription will automatically renew every year.
+
+To view payments, update your credit card or cancel your subscription please visit:
+
+http://watchdogdaemon.com/account/payment
+
+If you need help or have any quetions don't hesitate to contact us, 
+you can reply to this email or visit:
+
+http://watchdogdaemon.com/contact
+http://watchdogdaemon.com/support
+
+* This charge will appear on your credit card statement from Backup Parachute Software LLC
+</value></property>
+	</bean>
+	
+	<bean id="chargeSucceededSubjectJig" class="com.backupparachute.jig.StandardJig">
+		<property name="template"><value>[WatchdogDaemon] receipt</value></property>
+	</bean>
+	
+<!-- ########################################################################### -->	
+	
+	<bean id="subscriptionDeletedEmailJig" class="com.backupparachute.jig.ChainJig">
+		<property name="jigs">
+			<list>
+				<ref bean="subscriptionDeletedBodyJig"/>
+				<ref bean="footerJig" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="subscriptionDeletedBodyJig" class="com.backupparachute.jig.StandardJig">
+		<property name="template">
+<value>We are sorry to hear that you are cancelling your subscription.
+
+Your account will be active until: {{date}}.
+
+Would you mind telling us why you are cancelling your account?  You can reply to this email or visit: http://watchdogdaemon.com/contact
+
+Thank you for your business.
+</value></property>
+	</bean>
+	
+	<bean id="subscriptionDeletedSubjectJig" class="com.backupparachute.jig.StandardJig">
+		<property name="template"><value>[WatchdogDaemon] subscription cancelled</value></property>
+	</bean>
+
+<!-- ########################################################################### -->	
+	
+	<bean id="chargeFailedEmailJig" class="com.backupparachute.jig.ChainJig">
+		<property name="jigs">
+			<list>
+				<ref bean="chargeFailedBodyJig"/>
+				<ref bean="footerJig" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="chargeFailedBodyJig" class="com.backupparachute.jig.StandardJig">
+		<property name="template">
+<value>Credit Card Charge Failed.
+
+Your account has been disabled.
+
+To enable your account please visit: http://watchdogdaemon.com/account/payment
+
+Thank you for your business.
+</value></property>
+	</bean>
+	
+	<bean id="chargeFailedSubjectJig" class="com.backupparachute.jig.StandardJig">
+		<property name="template"><value>[WatchdogDaemon] charge failed</value></property>
+	</bean>
+</beans>

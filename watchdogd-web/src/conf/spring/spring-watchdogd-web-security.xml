@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+
+	<http auto-config="true">
+		<!-- #################### MARKETING ######################## -->
+		<intercept-url pattern="/" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+		<intercept-url pattern="/contact" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/signup" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/signup/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/login" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/about" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/news" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/privacy" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/terms" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/help" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/help/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/support" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/feedback" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/home" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/error/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<intercept-url pattern="/test/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		
+		
+		<!-- #################### RESOURCES ######################## -->
+		<intercept-url pattern="/images/**" filters="none" />
+		<intercept-url pattern="/styles/**" filters="none" />
+		<intercept-url pattern="/scripts/**" filters="none" />
+		
+		<!-- #################### PROTECTED ######################## -->
+		<intercept-url pattern="/user/recovery" filters="none" />
+		<intercept-url pattern="/user/*/token/*" filters="none" />
+		<intercept-url pattern="/paypal/ipn" filters="none" />
+		<intercept-url pattern="/webhooks" access="ROLE_ADMIN_WEBHOOKS" method="GET"/>
+		<intercept-url pattern="/webhooks" access="IS_AUTHENTICATED_ANONYMOUSLY" method="POST"/>
+		<intercept-url pattern="/site/*/status/*" access="ROLE_APPLICATION_SITE_STATUS_UPDATE" />
+		<intercept-url pattern="/site/*/status" access="ROLE_APPLICATION_SITE_STATUS" />
+		<intercept-url pattern="/sites" access="ROLE_APPLICATION_SITES" />
+		<intercept-url pattern="/sites.xml" access="ROLE_SITES_RSS" />
+		
+		<intercept-url pattern="/admin/invites" access="ROLE_ADMIN_INVITES" />
+		<intercept-url pattern="/admin/invite/**" access="ROLE_ADMIN_INVITE" />
+		<intercept-url pattern="/admin/requests" access="ROLE_ADMIN_REQUESTS" />
+		<intercept-url pattern="/admin/twitter" access="ROLE_ADMIN_TWITTER" />
+		<intercept-url pattern="/admin/groups" access="ROLE_ADMIN_GROUPS" />
+		<intercept-url pattern="/admin/group/**" access="ROLE_ADMIN_GROUP" />
+		<intercept-url pattern="/admin/help/**" access="ROLE_ADMIN_HELP" />
+		<intercept-url pattern="/admin/users" access="ROLE_ADMIN_USERS" />
+		<intercept-url pattern="/admin/user/**" access="ROLE_ADMIN_USER" />
+		
+		<intercept-url pattern="/applications" access="ROLE_APPLICATIONS" />
+		<intercept-url pattern="/application/**" access="ROLE_APPLICATION" />
+		<intercept-url pattern="/payment" access="ROLE_PAYMENT" />
+		<intercept-url pattern="/contacts" access="ROLE_CONTACTS" />
+		<intercept-url pattern="/contact/**" access="ROLE_CONTACT" />
+		<!--<intercept-url pattern="/sites" access="ROLE_SITES" />-->
+		<intercept-url pattern="/site/**" access="ROLE_SITE" />
+		<!--<intercept-url pattern="/home" access="ROLE_HOME" />-->
+		
+		<!-- #################### DEFAULT ######################## -->
+		<intercept-url pattern="/**" access="IS_AUTHENTICATED_REMEMBERED" />
+
+		<form-login login-page="/login" default-target-url="/home" authentication-failure-url="/login?login_error=1" />
+
+		<http-basic />
+		
+		<remember-me key="_wdog_" user-service-ref="userDAO" />
+
+		<logout logout-url="/logout" invalidate-session="true" />
+		
+	</http>
+
+	<authentication-manager>
+		<authentication-provider user-service-ref="userDAO">
+			<password-encoder ref="passwordEncoder">
+				<salt-source ref="saltSource" />
+			</password-encoder>
+		</authentication-provider>
+	</authentication-manager>
+
+</beans:beans>

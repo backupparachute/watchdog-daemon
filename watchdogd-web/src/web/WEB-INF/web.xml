@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app version="2.4"
+	xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+	>
+	
+	<context-param>
+  		<param-name>contextConfigLocation</param-name>
+  		<param-value>
+              /WEB-INF/spring-watchdogd-web.xml,
+              /WEB-INF/spring-watchdogd-web-security.xml,
+              /WEB-INF/spring-watchdogd-web-mvc-servlet.xml,
+			  classpath:spring-watchdogd-common-jig.xml,
+			  classpath:spring-watchdogd-common.xml 
+         </param-value>
+	</context-param>
+	
+	<filter>
+	  <filter-name>springSecurityFilterChain</filter-name>
+	  <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	</filter>
+	  
+	<filter-mapping>
+	  <filter-name>springSecurityFilterChain</filter-name>
+	  <url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<filter>
+		<filter-name>UrlRewriteFilter</filter-name>
+		<filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>UrlRewriteFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+					  
+	<filter>
+        <filter-name>sitemesh</filter-name>
+        <filter-class>com.opensymphony.module.sitemesh.filter.PageFilter</filter-class>
+    </filter>
+    
+    <filter-mapping>
+      <filter-name>sitemesh</filter-name>
+      <url-pattern>/*</url-pattern>
+      <dispatcher>FORWARD</dispatcher>
+      <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+     
+	 <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+    
+    <servlet>
+        <servlet-name>spring-watchdogd-web-mvc</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+		<servlet-name>spring-watchdogd-web-mvc</servlet-name>
+		<url-pattern>/app/*</url-pattern>
+	</servlet-mapping>
+    
+   <session-config>
+   		<session-timeout>600</session-timeout>
+   </session-config>
+   
+   <!--  
+	<welcome-file-list>
+		<welcome-file>/WEB-INF/jsp/index.jsp</welcome-file>
+	</welcome-file-list>
+	-->
+	
+	<error-page>
+		<error-code>404</error-code>
+		<location>/WEB-INF/jsp/error/404.jsp</location>
+	</error-page>
+	
+	<error-page>
+		<error-code>403</error-code>
+		<location>/WEB-INF/jsp/error/403.jsp</location>
+	</error-page>
+	
+	<error-page>
+		<error-code>500</error-code>
+		<location>/WEB-INF/jsp/error/500.jsp</location>
+	</error-page>
+		
+</web-app>

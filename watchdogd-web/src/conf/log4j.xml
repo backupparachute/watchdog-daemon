@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+ 
+<log4j:configuration debug="true" xmlns:log4j="http://jakarta.apache.org/log4j/">
+ 
+    <appender name="ConsoleAppender" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/>
+        </layout>
+    </appender>
+ 
+    <appender name="FileAppender" class="org.apache.log4j.RollingFileAppender">
+        <param name="File" value="${catalina.home}/logs/watchdogd-web.log"/>
+        <param name="MaxFileSize" value="10MB"/>
+        <param name="MaxBackupIndex" value="5"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/>
+        </layout>
+    </appender>  
+    
+    <category name="com.kylemiller.watchdogd.model.dao.BaseDAOImpl" additivity="false">
+        <priority value="warn"/>
+        <appender-ref ref="FileAppender"/>
+    </category>
+    
+    <category name="com.kylemiller.watchdogd.protocol.http.EasyX509TrustManager" additivity="false">
+        <priority value="warn"/>
+        <appender-ref ref="FileAppender"/>
+    </category>
+    
+    <category name="com.kylemiller" additivity="false">
+        <priority value="debug"/>
+        <appender-ref ref="FileAppender"/>
+    </category>
+    
+
+    
+    <category name="org.springframework" additivity="false">
+        <priority value="info"/>
+        <appender-ref ref="FileAppender"/>
+    </category>
+    
+    <category name="org.hibernate" additivity="false">
+        <priority value="info"/>
+        <appender-ref ref="FileAppender"/>
+    </category>
+    
+    <category name="org.apache.common.httpclient" additivity="false">
+        <priority value="info"/>
+        <appender-ref ref="FileAppender"/>
+    </category>
+    
+    <root>
+        <priority value="info"/>
+        <appender-ref ref="FileAppender"/>
+    </root>
+ 
+</log4j:configuration>

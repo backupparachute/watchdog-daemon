@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:watchdogd.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<context:component-scan base-package="com.kylemiller" />
+	
+	<bean id="exporter"
+		class="org.springframework.jmx.export.MBeanExporter"
+		lazy-init="false">
+		<property name="autodetect" value="true"></property>
+		<property name="namingStrategy" ref="namingStrategy"></property>
+		<property name="assembler" ref="assembler"></property>
+	</bean>
+	
+	<bean id="attributeSource" class="org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource" />
+	
+	<bean id="assembler"
+		class="org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler">
+		<property name="attributeSource" ref="attributeSource" />
+	</bean>
+	
+	<bean id="namingStrategy"
+		class="org.springframework.jmx.export.naming.MetadataNamingStrategy">
+		<property name="attributeSource" ref="attributeSource" />
+	</bean>
+	
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" lazy-init="false">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://${db.url}" />
+		<property name="username" value="${db.username}" />
+		<property name="password" value="${db.password}" />
+		<property name="validationQuery" value="select 1;" />
+		<property name="testOnBorrow" value="true" />
+	</bean>
+
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="persistenceUnitName" value="kylemillerPU" />
+		<property name="jpaVendorAdapter">
+			<bean
+				class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="showSql" value="false" />
+				<property name="generateDdl" value="false" />
+				<property name="databasePlatform"
+					value="org.hibernate.dialect.MySQLDialect" />
+			</bean>
+		</property>
+		<!-- 
+			<property name="loadTimeWeaver">
+			<bean class="org.springframework.instrument.classloading.ReflectiveLoadTimeWeaver"/>
+			</property>
+		-->
+	</bean>
+	
+	<bean id="transactionManager"
+		class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory" />
+	</bean>
+
+	<tx:annotation-driven transaction-manager="transactionManager" />
+	
+	<bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+
+	<bean id="passwordEncoder" class="com.kylemiller.watchdogd.util.security.BcryptPasswordEncoder" />
+	
+	<bean id="saltSource" class="com.kylemiller.watchdogd.util.security.MultipleSaltSource" />
+	
+	<bean id="emailService" class="com.kylemiller.watchdogd.service.EmailServiceImpl">
+		<property name="javaMailSender" ref="javaMailSender" />
+		<property name="emailTemplate" ref="emailTemplate" />
+	</bean>
+	
+	<bean id="httpClient" class="com.kylemiller.watchdogd.protocol.http.HttpClientHelper" init-method="init" />
+	    
+    <bean id="javaMailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="${email.host}" />
+		<property name="port" value="${email.port}" />
+		<property name="protocol" value="smtp" />
+		<property name="username" value="${email.username}"/>
+		<property name="password" value="${email.password}"/>
+		<property name="javaMailProperties">
+			<props>
+			<!--  
+				<prop key="mail.smtps.auth">true</prop>
+				<prop key="mail.smtps.starttls.enable">true</prop>
+				<prop key="mail.smtps.debug">true</prop>
+			-->
+			</props>
+		</property>
+	</bean>
+
+	<bean id="emailTemplate" class="org.springframework.mail.SimpleMailMessage" >
+		<property name="from" value="Watchdog Daemon &lt;spot@watchdogdaemon.com&gt;" />
+	</bean>
+	
+	<bean id="uriGenerator" class="com.kylemiller.watchdogd.util.UriGenerator">
+		<property name="host" value="${env.host}" />
+	</bean>
+	
+</beans>

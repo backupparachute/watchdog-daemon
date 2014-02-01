@@ -1,0 +1,33 @@
+{
+  "type": "customer.subscription.deleted",
+  "livemode": false,
+  "data": {
+    "object": {
+      "status": "canceled",
+      "cancel_at_period_end": true,
+      "canceled_at": 1335545888,
+      "start": 1332867488,
+      "trial_start": null,
+      "trial_end": null,
+      "customer": "cus_xvQdniMwL9mIgV",
+      "current_period_start": 1332867488,
+      "plan": {
+        "currency": "usd",
+        "trial_period_days": null,
+        "interval": "month",
+        "name": "foos",
+        "object": "plan",
+        "amount": 1099,
+        "id": "foos",
+        "livemode": false
+      },
+      "object": "subscription",
+      "current_period_end": 1335545888,
+      "ended_at": 1335545888
+    }
+  },
+  "object": "event",
+  "created": 1335545954,
+  "pending_webhooks": 1,
+  "id": "evt_7nUqMXLEtZm2T8"
+}

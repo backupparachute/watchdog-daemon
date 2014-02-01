@@ -1,0 +1,46 @@
+/* ######################################################################### */
+/* menu  */
+
+#menu {
+/*	clear: both;*/
+/*	border-bottom : 1px solid #C7BCB2;*/
+/*	margin: 10px 0 10 0;*/
+/*	padding-bottom : 22px;*/
+/*	padding-left : 10px;*/
+	font-size: 1em;
+}
+
+#menu ul, #menu li	{
+	display : inline;
+	list-style-type : none;
+	margin : 0;
+	padding : 0;
+}
+	
+#menu ul a:link, #menu ul a:visited	{
+	background : #C7BCB2;
+	border : 1px solid #C7BCB2;
+	color : #fff;
+	float : left;
+	
+	font-weight : normal;
+	line-height : 1em;
+	margin-right : 8px;
+	padding : 3px 10px 2px 10px;
+	text-decoration : none;
+	border-bottom: none;
+}
+
+#menu ul li a:hover
+,body.site #menu li#site a
+,body.app #menu li#app a
+,body.contact #menu li#contact a
+{
+/*	border: 1px solid #C7BCB2;*/
+/*	background: #FF9152;*/
+/*	background: #472200;*/
+/*	color: #C7BCB2;*/
+	background : #fff;
+	border-bottom : 1px solid #fff;
+	color : #472200;
+}
